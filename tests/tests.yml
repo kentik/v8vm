@@ -1,0 +1,76 @@
+
+"invalid module":
+  module: |
+    function x
+  expect: !Err "receiving on an empty and disconnected channel"
+
+"empty module":
+  module: ""
+  expect: !Err "default is not a function"
+
+"export missing":
+  module: |
+    export {}
+  expect: !Err "default is not a function"
+
+"export not a function":
+  module: |
+    export let test = bar
+  expect: !Err "default is not a function"
+
+"throw Error":
+  module: |
+    export default function test() {
+        throw new Error("failure");
+    }
+  expect: !Err "Error: failure"
+
+"throw string":
+  module: |
+    export default function test() {
+        throw "failure";
+    }
+  expect: !Err "failure"
+
+"async throw":
+  module: |
+    export default async function test() {
+        throw "failure";
+    }
+  expect: !Err "failure"
+
+"invoke function":
+  module: |
+    export default function test() {
+        return 42;
+    }
+  expect: !Ok 42
+
+"invoke async function":
+  module: |
+    export default async function() {
+        return 42;
+    }
+  expect: !Ok 42
+
+"pass multiple args":
+  module: |
+    export default function(a, b) {
+      if (a != "A") throw "invalid a";
+      if (b !=  42) throw "invalid b";
+    }
+  invoke:
+    name: default
+    args: ["A", 42]
+  expect: !Ok null
+
+"invoke fetch":
+  module: |
+    export default async function(url) {
+        let response = await fetch(url);
+        return response.status;
+    }
+  invoke:
+    name: default
+    args: ["https://www.google.com"]
+  expect: !Ok 200
